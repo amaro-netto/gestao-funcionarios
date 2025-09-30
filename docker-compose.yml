@@ -21,7 +21,7 @@ services:
     restart: always
     ports:
       # Mapeia a porta do container (3000) para a porta local (3000)
-      - "3000:3000"
+      - "3001:3000"
     environment:
       # Variáveis de Ambiente para a Aplicação Node.js
       # ATENÇÃO: O host do MongoDB agora é 'db', o nome do serviço no compose!
