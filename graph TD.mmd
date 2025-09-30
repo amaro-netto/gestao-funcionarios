@@ -1,0 +1,8 @@
+graph TD
+    A["Usuário no Navegador"] -->|Ação CRUD| B(script.js)
+    B -->|Requisição API| C{API RESTful}
+    C -->|Express & Mongoose| D[server.js]
+    D -->|Consulta DB| E[MongoDB]
+    E -->|Retorna Dados| D
+    D -->|Resposta JSON| B
+    B -->|Atualiza DOM| A
