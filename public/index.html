@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeBuddy - Gestão de Funcionários</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+    <header>
+        <h1>Sistema de Gestão de Funcionários</h1>
+    </header>
+
+    <main>
+        
+        <section id="form-section">
+            <h2>Adicionar/Editar Funcionário</h2>
+            <form id="funcionario-form">
+                <input type="hidden" id="funcionario-id"> 
+
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" required>
+
+                <label for="cargo">Cargo:</label>
+                <input type="text" id="cargo" required>
+
+                <label for="departamento">Departamento:</label>
+                <input type="text" id="departamento" required>
+
+                <button type="submit" id="submit-button">Adicionar Funcionário</button>
+                <button type="button" id="cancel-button" style="display: none;">Cancelar Edição</button>
+            </form>
+        </section>
+
+        <section id="list-section">
+            <h2>Lista de Funcionários</h2>
+            <table id="funcionarios-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Cargo</th>
+                        <th>Departamento</th>
+                        <th>Admissão</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="funcionarios-list"> 
+                    </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Desenvolvido por CodeBuddy</p>
+    </footer>
+
+    <script src="script.js"></script> 
+</body>
+</html>
