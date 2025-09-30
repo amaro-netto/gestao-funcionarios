@@ -1,6 +1,5 @@
-# NOME PROJETO: Apollonia Dental Practice: Gestão de Funcionários & Departamentos (CRUD)
+# Apollonia Dental Practice: Gestão de Funcionários & Departamentos (CRUD)
 
-Badges:
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
 ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
@@ -58,15 +57,7 @@ gestao-apollonia/
 └── server.js               # Backend: Servidor Express, Modelos e Rotas CRUD
 ```
 #### 🔄 **Fluxo de Funcionamento**
-```mermaid
-graph TD
-    A["Usuário no Navegador"] -->|Ação CRUD| B(script.js)
-    B -->|Requisição API| C{API RESTful}
-    C -->|Express & Mongoose| D[server.js]
-    D -->|Consulta DB| E[MongoDB]
-    E -->|Retorna Dados| D
-    D -->|Resposta JSON| B
-    B -->|Atualiza DOM| A
+
 ```mermaid
 graph TD
     A["Usuário no Navegador"] -->|Ação CRUD| B(script.js)
@@ -103,7 +94,7 @@ O ambiente é 100% conteinerizado com Docker.
 
 1.  **Clone o Repositório e Navegue:**
     ```bash
-    git clone [LINK-DO-SEU-REPOSITÓRIO]
+    git clone https://github.com/amaro-netto/gestao-funcionarios.git
     cd gestao-apollonia
     ```
 
@@ -142,3 +133,5 @@ Este projeto é uma implementação sólida de um aplicativo web Full-Stack, cum
 ---
 
 ### 📸 **Prévia do Projeto**
+<img width="1920" height="1221" alt="image" src="https://github.com/user-attachments/assets/0c538603-0342-493c-9a83-283e98bc44cc" />
+
