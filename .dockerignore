@@ -5,4 +5,4 @@ npm-debug.log
 # Não copiar arquivos de ambiente (eles serão passados no docker-compose)
 .env
 # Adicionando o script de seed
-seed.js
+# seed.js
