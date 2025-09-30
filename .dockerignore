@@ -1,0 +1,6 @@
+# Não copiar a pasta de módulos local (será reinstalada no container)
+node_modules
+# Não copiar arquivos de cache
+npm-debug.log
+# Não copiar arquivos de ambiente (eles serão passados no docker-compose)
+.env

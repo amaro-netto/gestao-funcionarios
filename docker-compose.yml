@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # 1. Serviço do Banco de Dados MongoDB
+  db:
+    image: mongo:latest  # Usa a imagem oficial do MongoDB
+    container_name: apollonia-db
+    restart: always      # Tenta reiniciar se falhar
+    ports:
+      # Mapeia a porta do container (27017) para a porta local (27017)
+      # Isso permite que você acesse o DB localmente se quiser
+      - "27017:27017" 
+    volumes:
+      # NOVIDADE: Persiste os dados. Se o container for parado, os dados não são perdidos.
+      - mongo_data:/data/db 
+
+  # 2. Serviço da Nossa Aplicação Node.js
+  app:
+    build: .             # Usa o Dockerfile que acabamos de criar nesta pasta
+    container_name: apollonia-app
+    restart: always
+    ports:
+      # Mapeia a porta do container (3000) para a porta local (3000)
+      - "3000:3000"
+    environment:
+      # Variáveis de Ambiente para a Aplicação Node.js
+      # ATENÇÃO: O host do MongoDB agora é 'db', o nome do serviço no compose!
+      MONGO_URI: mongodb://db:27017/apollonia_db
+      PORT: 3000
+    depends_on:
+      # Garante que o serviço 'db' suba antes do serviço 'app'
+      - db
+
+# 3. Volumes para Persistência
+volumes:
+  mongo_data:
