@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amaro Netto Soluções - Gestão de Funcionários</title>
+    <title>Apollonia Dental Practice - Gestão de Funcionários</title> 
     <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
@@ -25,9 +25,10 @@
                 <label for="cargo">Cargo:</label>
                 <input type="text" id="cargo" required>
 
-                <label for="departamento">Departamento:</label>
-                <input type="text" id="departamento" required>
-
+                <label for="departamentoId">Departamento:</label>
+                <select id="departamentoId" required>
+                    <option value="">Carregando Departamentos...</option>
+                </select>
                 <button type="submit" id="submit-button">Adicionar Funcionário</button>
                 <button type="button" id="cancel-button" style="display: none;">Cancelar Edição</button>
             </form>
@@ -40,7 +41,7 @@
                     <tr>
                         <th>Nome</th>
                         <th>Cargo</th>
-                        <th>Departamento</th>
+                        <th>Departamento</th> 
                         <th>Admissão</th>
                         <th>Ações</th>
                     </tr>

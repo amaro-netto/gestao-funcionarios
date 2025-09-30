@@ -1,5 +1,6 @@
-// A API_URL aponta para a rota que criamos no server.js
-const API_URL = '/api/funcionarios'; 
+// URLs para as APIs
+const API_URL_FUNCIONARIOS = '/api/funcionarios'; 
+const API_URL_DEPARTAMENTOS = '/api/departamentos';
 
 // Elementos da DOM
 const form = document.getElementById('funcionario-form');
@@ -9,25 +10,65 @@ const cancelButton = document.getElementById('cancel-button');
 const funcionarioIdInput = document.getElementById('funcionario-id');
 const nomeInput = document.getElementById('nome');
 const cargoInput = document.getElementById('cargo');
-const departamentoInput = document.getElementById('departamento');
+// NOVO ELEMENTO
+const departamentoIdSelect = document.getElementById('departamentoId'); 
+
 
 // Executa ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
-    carregarFuncionarios();
+    // Ordem importante: Carregar departamentos ANTES de carregar funcionários
+    carregarDepartamentos().then(() => {
+        carregarFuncionarios();
+    });
+    
     form.addEventListener('submit', salvarFuncionario);
     cancelButton.addEventListener('click', limparFormulario);
 });
 
 // -----------------------------------------------------------------
-// FUNÇÕES PRINCIPAIS (CRUD)
+// NOVO: FUNÇÕES DE DEPARTAMENTO
 // -----------------------------------------------------------------
 
 /**
- * R. READ (Ler) - Busca os dados no backend e exibe na tabela.
+ * Carrega a lista de departamentos do backend e preenche o select.
+ */
+async function carregarDepartamentos() {
+    try {
+        const response = await fetch(API_URL_DEPARTAMENTOS);
+        const departamentos = await response.json();
+
+        // Limpa e adiciona a opção padrão
+        departamentoIdSelect.innerHTML = '<option value="">Selecione um Departamento</option>';
+        
+        if (departamentos.length === 0) {
+            departamentoIdSelect.innerHTML = '<option value="">Nenhum departamento. Crie um no backend (Postman).</option>';
+            return;
+        }
+
+        departamentos.forEach(dep => {
+            const option = document.createElement('option');
+            option.value = dep._id; // O valor é o ID do MongoDB
+            option.textContent = dep.nome; 
+            departamentoIdSelect.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar departamentos:', error);
+    }
+}
+
+
+// -----------------------------------------------------------------
+// FUNÇÕES DE FUNCIONÁRIOS (CRUD)
+// -----------------------------------------------------------------
+
+/**
+ * R. READ (Ler) - Busca os funcionários e exibe.
  */
 async function carregarFuncionarios() {
     try {
-        const response = await fetch(API_URL);
+        // Usa a API de funcionários que agora usa 'populate' para trazer o nome do departamento
+        const response = await fetch(API_URL_FUNCIONARIOS); 
         const funcionarios = await response.json();
 
         funcionariosList.innerHTML = '';
@@ -42,13 +83,12 @@ async function carregarFuncionarios() {
 
     } catch (error) {
         console.error('Erro ao carregar funcionários:', error);
-        alert('Erro ao carregar dados. Verifique se o servidor está rodando.');
     }
 }
 
 
 /**
- * C. CREATE (Criar) ou U. UPDATE (Atualizar) - Envia dados do formulário para o backend.
+ * C. CREATE (Criar) ou U. UPDATE (Atualizar)
  */
 async function salvarFuncionario(event) {
     event.preventDefault();
@@ -56,15 +96,22 @@ async function salvarFuncionario(event) {
     const id = funcionarioIdInput.value;
     const isEditing = id ? true : false;
 
+    // Dados agora incluem o ID do departamento selecionado
     const funcionarioData = {
         nome: nomeInput.value,
         cargo: cargoInput.value,
-        departamento: departamentoInput.value
+        departamentoId: departamentoIdSelect.value 
     };
+    
+    // Validação para garantir que um departamento foi selecionado
+    if (!funcionarioData.departamentoId) {
+        alert("Por favor, selecione um departamento.");
+        return;
+    }
 
     try {
         const method = isEditing ? 'PUT' : 'POST';
-        const url = isEditing ? `${API_URL}/${id}` : API_URL;
+        const url = isEditing ? `${API_URL_FUNCIONARIOS}/${id}` : API_URL_FUNCIONARIOS;
 
         const response = await fetch(url, {
             method: method,
@@ -90,7 +137,7 @@ async function salvarFuncionario(event) {
 
 
 /**
- * D. DELETE (Deletar) - Remove um funcionário pelo ID.
+ * D. DELETE (Deletar) - Mantém a mesma lógica.
  */
 async function deletarFuncionario(id) {
     if (!confirm('Tem certeza que deseja deletar este funcionário?')) {
@@ -98,7 +145,7 @@ async function deletarFuncionario(id) {
     }
 
     try {
-        const response = await fetch(`${API_URL}/${id}`, {
+        const response = await fetch(`${API_URL_FUNCIONARIOS}/${id}`, {
             method: 'DELETE'
         });
 
@@ -121,14 +168,16 @@ async function deletarFuncionario(id) {
 // -----------------------------------------------------------------
 
 /**
- * Preenche o formulário com dados para edição.
- * @param {object} funcionario - O objeto do funcionário a ser editado.
+ * Preenche o formulário para edição.
  */
 function preencherFormularioParaEdicao(funcionario) {
     funcionarioIdInput.value = funcionario._id;
     nomeInput.value = funcionario.nome;
     cargoInput.value = funcionario.cargo;
-    departamentoInput.value = funcionario.departamento;
+    
+    // Seleciona o ID do departamento (que pode vir como objeto ou ID puro dependendo do backend)
+    // O backend com 'populate' retorna um objeto, então pegamos o _id dele.
+    departamentoIdSelect.value = funcionario.departamentoId._id || funcionario.departamentoId; 
 
     submitButton.textContent = 'Salvar Alterações';
     submitButton.style.backgroundColor = '#f39c12';
@@ -136,7 +185,7 @@ function preencherFormularioParaEdicao(funcionario) {
 }
 
 /**
- * Limpa o formulário e volta para o modo Criação.
+ * Limpa o formulário.
  */
 function limparFormulario() {
     form.reset();
@@ -149,17 +198,21 @@ function limparFormulario() {
 
 
 /**
- * Cria a linha da tabela e adiciona os botões de ação.
- * @param {object} funcionario - O objeto do funcionário.
+ * Cria a linha da tabela.
  */
 function adicionarFuncionarioNaTabela(funcionario) {
     const row = funcionariosList.insertRow();
     
     const dataAdmissao = new Date(funcionario.dataAdmissao).toLocaleDateString('pt-BR');
 
+    // Extrai o nome do departamento. Se o populate funcionou, ele é um objeto.
+    const departamentoNome = funcionario.departamentoId && funcionario.departamentoId.nome ? 
+                             funcionario.departamentoId.nome : 
+                             'Não Atribuído';
+
     row.insertCell(0).textContent = funcionario.nome;
     row.insertCell(1).textContent = funcionario.cargo;
-    row.insertCell(2).textContent = funcionario.departamento;
+    row.insertCell(2).textContent = departamentoNome; // Exibe o nome do departamento
     row.insertCell(3).textContent = dataAdmissao;
     
     const acoesCell = row.insertCell(4);
