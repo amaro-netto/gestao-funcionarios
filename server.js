@@ -1,74 +1,98 @@
-// 1. CARREGAR DEPENDÊNCIAS
-// Carrega variáveis de ambiente do .env
+// 1. CARREGAR DEPENDÊNCIAS E CONFIGURAÇÕES
 require('dotenv').config(); 
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-// 2. CONFIGURAÇÕES BÁSICAS DO EXPRESS
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI;
+// Ajuste a URI para o novo nome de banco local, se necessário, ou mantenha o anterior
+const MONGO_URI = process.env.MONGO_URI; 
 
-// Configurações do Middleware
-// Permite requisições de outras origens
 app.use(cors()); 
-// Habilita o Express a receber JSON no corpo das requisições
 app.use(express.json()); 
-// Define a pasta 'public' para servir arquivos estáticos (HTML, CSS, JS do frontend)
 app.use(express.static('public')); 
 
-// 3. CONEXÃO COM O MONGODB
+// 2. CONEXÃO COM O MONGODB
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ Conectado ao MongoDB!'))
     .catch(err => console.error('❌ Erro de conexão com MongoDB:', err));
 
-// 4. DEFINIÇÃO DO MODELO (SCHEMA)
-// O Schema é o "molde" que define a estrutura dos documentos (funcionários) no DB
+// 3. DEFINIÇÃO DOS MODELOS (SCHEMAS)
+// NOVO: 3.1. Modelo Departamento
+// Um departamento tem apenas um nome e uma descrição
+const departamentoSchema = new mongoose.Schema({
+    nome: { type: String, required: true, unique: true },
+    descricao: { type: String, required: false }
+});
+
+const Departamento = mongoose.model('Departamento', departamentoSchema);
+
+// MODIFICADO: 3.2. Modelo Funcionário
 const funcionarioSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     cargo: { type: String, required: true },
-    departamento: { type: String, required: true },
-    // Data é definida automaticamente se não for passada
+    // NOVO CAMPO: Liga o funcionário ao Departamento usando o ID (relacionamento)
+    departamentoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Departamento', required: true }, 
     dataAdmissao: { type: Date, default: Date.now } 
 });
 
 const Funcionario = mongoose.model('Funcionario', funcionarioSchema);
 
-// 5. ROTAS DA API REST (CRUD)
 
-// A. CREATE (Criar) - Rota: POST /api/funcionarios
-app.post('/api/funcionarios', async (req, res) => {
+// 4. ROTAS DA API REST
+
+// NOVO: 4.1. ROTAS DE DEPARTAMENTOS (CRUD Básico - Foco em Criação e Leitura)
+// C. CREATE Departamento: POST /api/departamentos
+app.post('/api/departamentos', async (req, res) => {
     try {
-        const novoFuncionario = new Funcionario(req.body);
-        const funcionarioSalvo = await novoFuncionario.save();
-        // Resposta 201: Recurso criado com sucesso
-        res.status(201).json(funcionarioSalvo); 
+        const novoDepartamento = new Departamento(req.body);
+        const departamentoSalvo = await novoDepartamento.save();
+        res.status(201).json(departamentoSalvo); 
     } catch (error) {
-        // Resposta 400: Requisição inválida (ex: campo obrigatório faltando)
         res.status(400).json({ message: error.message }); 
     }
 });
 
-// R. READ (Ler Todos) - Rota: GET /api/funcionarios
-app.get('/api/funcionarios', async (req, res) => {
+// R. READ Departamentos: GET /api/departamentos
+app.get('/api/departamentos', async (req, res) => {
     try {
-        // Encontra todos os documentos da coleção
-        const funcionarios = await Funcionario.find(); 
-        res.json(funcionarios);
+        const departamentos = await Departamento.find(); 
+        res.json(departamentos);
     } catch (error) {
-        // Resposta 500: Erro interno do servidor
         res.status(500).json({ message: error.message }); 
     }
 });
 
-// U. UPDATE (Atualizar) - Rota: PUT /api/funcionarios/:id
+
+// MODIFICADO: 4.2. ROTAS DE FUNCIONÁRIOS (CRUD Completo)
+// C. CREATE Funcionário: POST /api/funcionarios (Nenhuma mudança na rota, apenas nos dados esperados)
+app.post('/api/funcionarios', async (req, res) => {
+    try {
+        const novoFuncionario = new Funcionario(req.body);
+        const funcionarioSalvo = await novoFuncionario.save();
+        res.status(201).json(funcionarioSalvo); 
+    } catch (error) {
+        res.status(400).json({ message: error.message }); 
+    }
+});
+
+// R. READ Funcionários: GET /api/funcionarios
+app.get('/api/funcionarios', async (req, res) => {
+    try {
+        // USO DE POPULATE: Traz as informações do objeto Departamento junto com o Funcionário
+        const funcionarios = await Funcionario.find().populate('departamentoId', 'nome'); 
+        res.json(funcionarios);
+    } catch (error) {
+        res.status(500).json({ message: error.message }); 
+    }
+});
+
+// U. UPDATE Funcionário: PUT /api/funcionarios/:id (Nenhuma mudança na rota)
 app.put('/api/funcionarios/:id', async (req, res) => {
     try {
-        // Atualiza o funcionário pelo ID e retorna o novo documento (opção { new: true })
         const funcionarioAtualizado = await Funcionario.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!funcionarioAtualizado) {
-            // Resposta 404: Não encontrado
             return res.status(404).json({ message: 'Funcionário não encontrado.' });
         }
         res.json(funcionarioAtualizado);
@@ -77,10 +101,9 @@ app.put('/api/funcionarios/:id', async (req, res) => {
     }
 });
 
-// D. DELETE (Deletar) - Rota: DELETE /api/funcionarios/:id
+// D. DELETE Funcionário: DELETE /api/funcionarios/:id (Nenhuma mudança na rota)
 app.delete('/api/funcionarios/:id', async (req, res) => {
     try {
-        // Deleta o funcionário pelo ID
         const funcionarioDeletado = await Funcionario.findByIdAndDelete(req.params.id);
         if (!funcionarioDeletado) {
             return res.status(404).json({ message: 'Funcionário não encontrado.' });
@@ -92,7 +115,7 @@ app.delete('/api/funcionarios/:id', async (req, res) => {
 });
 
 
-// 6. INICIAR O SERVIDOR
+// 5. INICIAR O SERVIDOR
 app.listen(PORT, () => {
     console.log(`💻 Servidor rodando em http://localhost:${PORT}`);
 });
